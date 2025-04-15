@@ -1,0 +1,101 @@
+.tournaments-view-container {
+  padding: 40px 20px;
+
+  background-color: #f4f6f8;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.tables-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.tournaments-section {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  flex: 1 1 48%;
+  min-width: 350px;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.tournaments-section h2 {
+  font-size: 1.6rem;
+  color: #2c3e50;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.tournament-card {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 20px;
+  background-color: #ffffff;
+}
+
+.tournament-card h3 {
+  font-size: 1.2rem;
+  color: #2c3e50;
+  margin-bottom: 10px;
+}
+
+.tournament-card h3 small {
+  display: block;
+  font-size: 0.9rem;
+  color: #888;
+}
+
+.match-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+.match-table-wrapper {
+  max-height: 220px;
+  overflow-y: auto;
+  margin-top: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+/* Optional scrollbar styling */
+.match-table-wrapper::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.match-table-wrapper::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+.match-table-wrapper::-webkit-scrollbar-track {
+  background-color: #f9f9f9;
+}
+.match-table th,
+.match-table td {
+  border: 1px solid #ddd;
+  padding: 8px 10px;
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+.match-table th {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.info-text {
+  font-style: italic;
+  color: #777;
+  font-size: 0.95rem;
+  padding-top: 10px;
+}

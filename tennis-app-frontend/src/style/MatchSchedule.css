@@ -1,0 +1,46 @@
+/* Center the container and give some padding */
+.match-schedule-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  /* Heading style */
+  .match-schedule-container h1 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  /* Loading/error/no-matches states */
+  .match-schedule-loading,
+  .match-schedule-error,
+  .no-matches {
+    text-align: center;
+    font-size: 18px;
+    margin-top: 30px;
+  }
+  
+  /* Table styling */
+  .match-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 16px;
+  }
+  
+  .match-table th,
+  .match-table td {
+    border: 1px solid #ccc;
+    padding: 8px 12px;
+  }
+  
+  /* Header row background */
+  .match-table th {
+    background-color: #f8f8f8;
+  }
+  
+  /* Zebra striping */
+  .match-table tr:nth-child(even) {
+    background-color: #f5f5f5;
+  }
+  

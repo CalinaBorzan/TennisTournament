@@ -1,0 +1,93 @@
+.match-scores {
+    padding: 20px;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  
+  .match-scores h2 {
+    color: #2c3e50;
+    margin-bottom: 30px;
+    text-align: center;
+  }
+  
+  .scoreboard {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .match-result {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  }
+  
+  .match-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .match-header h3 {
+    margin: 0;
+    color: #3498db;
+  }
+  
+  .match-date {
+    color: #7f8c8d;
+    font-size: 14px;
+  }
+  
+  .players {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .player {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-radius: 5px;
+  }
+  
+  .player-name {
+    font-weight: bold;
+  }
+  
+  .player-score {
+    font-size: 18px;
+    font-weight: bold;
+  }
+  
+  .winner {
+    background-color: rgba(46, 204, 113, 0.1);
+    border-left: 4px solid #2ecc71;
+  }
+  
+  .match-outcome {
+    margin-top: 15px;
+    text-align: center;
+    font-weight: bold;
+  }
+  
+  .won {
+    color: #2ecc71;
+  }
+  
+  .lost {
+    color: #e74c3c;
+  }
+  
+  .no-matches {
+    text-align: center;
+    padding: 40px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    color: #7f8c8d;
+  }

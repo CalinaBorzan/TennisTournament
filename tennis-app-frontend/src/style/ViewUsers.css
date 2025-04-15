@@ -1,0 +1,112 @@
+.view-users {
+    padding: 30px;
+    background-color: #f4f6f8;
+    min-height: 100vh;
+    font-family: 'Segoe UI', sans-serif;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.view-users h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 32px;
+    color: #2c3e50;
+}
+
+table {
+    width: 100%;
+    min-width: 1000px; /* Increased minimum width */
+    border-collapse: separate;
+    border-spacing: 0;
+    background-color: #ffffff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin: 0 auto;
+    font-size: 16px; /* Larger font size */
+}
+
+thead {
+    background-color: #2c3e50;
+    color: white;
+    position: sticky;
+    top: 0;
+}
+
+thead th {
+    padding: 18px 20px; /* Increased padding */
+    text-align: left;
+    font-weight: 600;
+    font-size: 18px; /* Larger header font */
+}
+
+tbody td {
+    padding: 16px 20px; /* Increased padding */
+    border-bottom: 1px solid #e0e0e0;
+    vertical-align: middle;
+}
+
+tbody tr:last-child td {
+    border-bottom: none;
+}
+
+tbody tr:hover {
+    background-color: #f5f9ff;
+}
+
+.actions-cell {
+    white-space: nowrap;
+    min-width: 180px; /* Ensure enough space for buttons */
+}
+
+button {
+    margin-right: 12px;
+    padding: 8px 16px; /* Larger buttons */
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    font-size: 15px;
+}
+
+.edit-btn {
+    background-color: #3498db;
+    color: white;
+    min-width: 70px;
+}
+
+.edit-btn:hover {
+    background-color: #2980b9;
+    transform: translateY(-1px);
+}
+
+.delete-btn {
+    background-color: #e74c3c;
+    color: white;
+    min-width: 80px;
+}
+
+.delete-btn:hover {
+    background-color: #c0392b;
+    transform: translateY(-1px);
+}
+
+/* Scrollable container for smaller screens */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: 10px;
+    margin-bottom: 30px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1100px) {
+    .view-users {
+        padding: 20px;
+    }
+    table {
+        min-width: 900px;
+    }
+}

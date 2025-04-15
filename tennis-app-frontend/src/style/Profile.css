@@ -1,0 +1,80 @@
+.profile-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 90vh;
+    background-color: #f4f6f9;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .profile-card {
+    background: white;
+    padding: 30px 40px;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  }
+  
+  .profile-card h2 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 25px;
+  }
+  
+  .profile-info p {
+    margin: 10px 0;
+    color: #34495e;
+    font-size: 16px;
+  }
+  
+  .profile-form input {
+    width: 100%;
+    margin-bottom: 12px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+  }
+  
+  .profile-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 15px;
+  }
+  
+  .profile-buttons button {
+    flex: 1;
+    padding: 10px;
+    font-size: 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    border: none;
+    transition: 0.3s ease;
+  }
+  
+  .edit-btn, .save-btn {
+    background-color: #3498db;
+    color: white;
+  }
+  
+  .cancel-btn {
+    background-color: #bdc3c7;
+    color: #2c3e50;
+  }
+  
+  .delete-btn {
+    background-color: #e74c3c;
+    color: white;
+  }
+  
+  button:hover {
+    opacity: 0.9;
+  }
+  
+  .profile-message {
+    text-align: center;
+    margin-top: 50px;
+    color: #e74c3c;
+  }
+  
