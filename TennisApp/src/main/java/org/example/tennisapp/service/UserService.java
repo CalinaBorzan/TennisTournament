@@ -1,5 +1,7 @@
 package org.example.tennisapp.service;
 
+import jakarta.transaction.Transactional;
+import org.example.tennisapp.dto.UserUpdateDTO;
 import org.example.tennisapp.entity.Match;
 import org.example.tennisapp.entity.User;
 import org.example.tennisapp.repository.MatchRepository;
@@ -25,8 +27,10 @@ public class UserService {
 
 
     public User findByUsername(String username) {
-        return userRepository.findByUsername(username);
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
+
 
     public User registerUser(String username, String rawPassword, String email,
                              User.UserRole role, String firstName, String lastName) {
@@ -46,12 +50,11 @@ public class UserService {
     }
 
     public User loginUser(String username, String rawPassword) {
-        User user = userRepository.findByUsername(username);
-        if (user != null && passwordEncoder.matches(rawPassword, user.getPassword())) {
-            return user;
-        }
-        return null;
+        return userRepository.findByUsername(username)
+                .filter(user -> passwordEncoder.matches(rawPassword, user.getPassword()))
+                .orElse(null);
     }
+
 
     public void delete(Long id) {
         User user = userRepository.findById(id)
@@ -83,45 +86,38 @@ public class UserService {
 
         userRepository.delete(user);
     }
-    public User updateUserDetails(Long id, User userUpdates) {
-        return userRepository.findById(id)
-                .map(existingUser -> {
-                    User.Builder builder = User.builder(existingUser);
-                    if (userUpdates.getFirstName() != null) {
-                        builder.firstName(userUpdates.getFirstName());
-                    }
-                    if (userUpdates.getLastName() != null) {
-                        builder.lastName(userUpdates.getLastName());
-                    }
-                    if (userUpdates.getUsername() != null &&
-                            !userUpdates.getUsername().equals(existingUser.getUsername())) {
-                        if (userRepository.existsByUsername(userUpdates.getUsername())) {
-                            throw new IllegalArgumentException("Username already exists");
-                        }
-                        builder.username(userUpdates.getUsername());
-                    }
-                    if (userUpdates.getEmail() != null &&
-                            !userUpdates.getEmail().equals(existingUser.getEmail())) {
-                        if (userRepository.existsByEmail(userUpdates.getEmail())) {
-                            throw new IllegalArgumentException("Email already exists");
-                        }
-                        builder.email(userUpdates.getEmail());
-                    }
-                    if (userUpdates.getPassword() != null && !userUpdates.getPassword().isEmpty()) {
-                        builder.password(passwordEncoder.encode(userUpdates.getPassword()));
-                    } else {
-                        builder.password(existingUser.getPassword());
-                    }
-                    if (userUpdates.getRole() != null && existingUser.getRole() != User.UserRole.admin) {
-                        builder.role(userUpdates.getRole());
-                    }
 
-                    User updatedUser = builder.build();
-                    updatedUser.setId(existingUser.getId());
-                    return userRepository.save(updatedUser);
-                })
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    @Transactional
+    public User updateUserDetails(Long id, UserUpdateDTO dto) {
+
+        User u = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        /* ---------- username + email uniqueness checks ---------- */
+        if (!u.getUsername().equals(dto.username())) {
+            if (userRepository.existsByUsername(dto.username()))
+                throw new IllegalArgumentException("Username already exists");
+            u.setUsername(dto.username());
+        }
+
+        if (!u.getEmail().equals(dto.email())) {
+            if (userRepository.existsByEmail(dto.email()))
+                throw new IllegalArgumentException("Email already exists");
+            u.setEmail(dto.email());
+        }
+
+        /* ---------- the rest of the scalar fields ---------- */
+        u.setFirstName(dto.firstName());
+        u.setLastName (dto.lastName ());
+        if (dto.password() != null && !dto.password().isBlank())
+            u.setPassword(passwordEncoder.encode(dto.password()));
+
+        /* ---------- nothing else to do ---------- */
+        return u;                 // TX commit will flush the dirty entity
     }
+
+
+
 
     public List<User> findAll() {
         return userRepository.findAll();

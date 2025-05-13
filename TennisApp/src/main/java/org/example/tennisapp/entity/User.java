@@ -1,5 +1,7 @@
 package org.example.tennisapp.entity;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -7,6 +9,8 @@ import java.util.List;
 
 @Entity
 @Table(name = "user")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class,
+        property  = "id")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,13 +34,31 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
-    @ManyToMany
-    @JoinTable(
-            name = "user_tournaments",          // name of the join table
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "tournament_id")
-    )
-    private List<Tournament> registeredTournaments = new ArrayList<>();
+    @OneToMany(mappedBy = "id.user",            // <-  path into embedded id
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    private List<TournamentRegistration> registrations = new ArrayList<>();
+
+    @Transient
+    public List<Tournament> getAcceptedTournaments() {
+        return registrations.stream()
+                .filter(r -> r.getStatus() == RegistrationStatus.ACCEPTED)
+                .map(TournamentRegistration::getTournament)
+                .toList();
+    }
+
+    public void addRegistration(TournamentRegistration reg){
+        registrations.add(reg);
+        reg.setUser(this);          // keep in-sync
+    }
+
+    @Transient
+    public List<Tournament> getRegisteredTournaments() {
+        return registrations.stream()
+                .filter(r -> r.getStatus() == RegistrationStatus.ACCEPTED)
+                .map(TournamentRegistration::getTournament)
+                .toList();
+    }
 
     protected User() {}
 
@@ -48,6 +70,8 @@ public class User {
         this.email = builder.email;
         this.role = builder.role;
     }
+
+
 
     public enum UserRole {
         admin,
@@ -151,12 +175,33 @@ public class User {
     public UserRole getRole() { return role; }
 
     public void setId(Long id) { this.id = id; }
+    public void setFirstName(String s) {
+        this.firstName = s;
+    }
 
-    public List<Tournament> getRegisteredTournaments() {
-        return registeredTournaments;
+    public void setLastName(String s) {
+        this.lastName = s;
     }
-    public void addTournament(Tournament tournament) {
-        registeredTournaments.add(tournament);
+    public void setUsername(String s) {
+        this.username = s;
     }
+    public void setPassword(String s) {
+        this.password = s;
+    }
+    public void setEmail(String s) {
+        this.email = s;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
+    }
+
+    public List<TournamentRegistration> getRegistrations() {
+        return registrations;
+    }
+
+
+
+
 
 }

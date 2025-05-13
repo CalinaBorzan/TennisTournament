@@ -1,5 +1,6 @@
 .view-users {
     padding: 30px;
+    padding-top: 600px; /* ⬅ Moves all content lower */
     background-color: #f4f6f8;
     min-height: 100vh;
     font-family: 'Segoe UI', sans-serif;
@@ -11,27 +12,29 @@
     text-align: center;
     margin-bottom: 30px;
     font-size: 32px;
+
     color: #2c3e50;
 }
 
 table {
     width: 100%;
-    min-width: 1000px; /* Increased minimum width */
+    min-width: 1050px;
     border-collapse: separate;
     border-spacing: 0;
     background-color: #ffffff;
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    margin: 0 auto;
-    font-size: 16px; /* Larger font size */
+    font-size: 16px;
 }
+
 
 thead {
     background-color: #2c3e50;
     color: white;
     position: sticky;
     top: 0;
+
 }
 
 thead th {
@@ -39,16 +42,19 @@ thead th {
     text-align: left;
     font-weight: 600;
     font-size: 18px; /* Larger header font */
+
 }
 
 tbody td {
     padding: 16px 20px; /* Increased padding */
     border-bottom: 1px solid #e0e0e0;
     vertical-align: middle;
+
 }
 
 tbody tr:last-child td {
     border-bottom: none;
+
 }
 
 tbody tr:hover {
@@ -57,7 +63,7 @@ tbody tr:hover {
 
 .actions-cell {
     white-space: nowrap;
-    min-width: 180px; /* Ensure enough space for buttons */
+    min-width: 230px; /* Ensure enough space for buttons */
 }
 
 button {
@@ -93,12 +99,13 @@ button {
     transform: translateY(-1px);
 }
 
-/* Scrollable container for smaller screens */
 .table-container {
     width: 100%;
     overflow-x: auto;
     border-radius: 10px;
     margin-bottom: 30px;
+
+    
 }
 
 /* Responsive adjustments */

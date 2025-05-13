@@ -1,31 +1,54 @@
 import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 
-// Set up the base URL to your backend API (update it with your backend URL)
 const api = axios.create({
-  baseURL: 'http://localhost:8080', // Assuming your backend is running on port 8080
+  baseURL: 'http://localhost:8080',            // <- backend root
+  withCredentials: false                       // JWT is in header, not cookie
 });
 
-// Register function
-export const registerUser = async (userData) => {
+/* ------------------------------------------------------------------ */
+/* 1)  Intercept every request and attach the token if we have one     */
+/* ------------------------------------------------------------------ */
+api.interceptors.request.use(config => {
+  const token = localStorage.getItem('jwt');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+/* ------------------------------------------------------------------ */
+/* 2)  Auth helpers                                                   */
+/* ------------------------------------------------------------------ */
+export const registerUser = data =>
+  api.post('/api/users/register', data).then(r => r.data);
+
+export const loginUser = creds =>
+  api.post('/api/users/login', creds).then(r => {
+    const { token, user } = r.data;
+    localStorage.setItem('jwt', token);        
+    api.defaults.headers.common.Authorization = `Bearer ${token}`; // safety net
+    return { token, user };
+  });
+
+export const logout = () => localStorage.removeItem('jwt');
+
+export const getCurrentUser = () => {
+  const token = localStorage.getItem('jwt');
+  if (!token) return null;
+
   try {
-    const response = await api.post('/register', userData); // Adjust the endpoint as per your backend
-    return response.data;
-  } catch (error) {
-    console.error('Error registering user', error);
-    throw error;
+    const payload = jwtDecode(token);
+    // Token expired?
+    if (Date.now() >= payload.exp * 1000) {
+      logout();
+      return null;
+    }
+    return { ...payload };                     // username + role in your token
+  } catch {
+    logout();
+    return null;
   }
 };
-export const loginUser = async (credentials) => {
-    try {
-      const response = await api.post('/api/users/login', credentials);
-      if (response.status === 200) {
-        return response.data; // Just return the data, let the component handle redirection
-      }
-      throw new Error('Login failed');
-    } catch (error) {
-      console.error('Error logging in', error);
-      throw error;
-    }
-  };
-// Default export for axios if you need it in other files
-export default api;
+
+export default api;   // keep the raw Axios instance for the rest of the app

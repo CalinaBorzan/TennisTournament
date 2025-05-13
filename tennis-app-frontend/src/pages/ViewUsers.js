@@ -1,64 +1,38 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import '../style/ViewUsers.css';
+import api from "../api/auth";
+
 
 const ViewUsers = () => {
   const [users, setUsers] = useState([]);
   const [editingUser, setEditingUser] = useState(null);
+
   const [editForm, setEditForm] = useState({
     firstName: '',
     lastName: '',
     username: '',
     email: '',
-    role: 'player'
-  });
-  const navigate = useNavigate();
+    role: 'player',
+    password : ""            // <-- add this so it exists in state
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  });
+
+
 
   const fetchUsers = () => {
-    fetch('http://localhost:8080/api/users/all', {
-      credentials: 'include',
-    })
-      .then(res => {
-        console.log('RAW RESPONSE:', res);  // Check response object
-        if (res.redirected) {
-          console.warn('Unexpected redirect to:', res.url);
-          window.location.href = '/login';
-          return;
-        }
-        return res.json();
-      })
-      .then(data => {
-        console.log('PARSED DATA:', data);  // Verify parsed data
-        setUsers(data.filter(user => user.role !== 'admin'));
-      })
-      .catch(err => console.error('Fetch error:', err));
+    api.get("/api/users/all")
+       .then(r => setUsers(r.data.filter(u => u.role !== "admin")))
+       .catch(console.error);
   };
+  useEffect(fetchUsers, []);
   
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this user?')) return;
-    
-    try {
-      const response = await fetch(`http://localhost:8080/api/users/delete/${id}`, {
-        method: 'DELETE',
-        credentials: 'include', // If using cookies/session
-      });
-      
-      if (response.ok) {
-        fetchUsers(); // Refresh the list
-        navigate('/user-management'); // Redirect back (optional)
-      } else {
-        const error = await response.text();
-        alert(`Delete failed: ${error}`);
-      }
-    } catch (err) {
-      console.error('Delete failed:', err);
-      alert('Delete failed. Please try again.');
-    }
+  const handleDelete = async id => {
+    if (!window.confirm("Delete user?")) return;
+    await api.delete(`/api/users/delete/${id}`);
+    fetchUsers();
   };
+
+
   const handleEdit = (user) => {
     setEditingUser(user);
     setEditForm({
@@ -70,30 +44,22 @@ const ViewUsers = () => {
     });
   };
 
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    
-    try {
-      const response = await fetch(`http://localhost:8080/api/users/update-user/${editingUser.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(editForm),
-      });
+ const handleUpdate = async e => {
+  e.preventDefault();      // stop form submit reload
 
-      if (response.ok) {
-        fetchUsers(); // Refresh the list
-        setEditingUser(null);
-      } else {
-        const error = await response.text();
-        alert(`Update failed: ${error}`);
-      }
-    } catch (err) {
-      console.error('Update failed:', err);
-      alert('Update failed. Please try again.');
-    }
+  const payload = {
+    firstName: editForm.firstName,
+    lastName : editForm.lastName,
+    username : editForm.username,
+    email    : editForm.email,
+    password : editForm.password || "",   // blank = keep current
+    role     : editForm.role
   };
+
+  await api.put(`/api/users/update-user/${editingUser.id}`, payload);
+  setEditingUser(null);
+  fetchUsers();
+};
 
   const handleChange = (e) => {
     const { name, value } = e.target;

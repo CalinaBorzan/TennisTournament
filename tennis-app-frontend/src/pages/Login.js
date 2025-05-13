@@ -1,24 +1,26 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../api/auth";
+import { useAuth } from "../context/AuthContext";        // ①  add
 import "../style/Login.css";
 
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
+  const [message, setMessage]   = useState("");
   const navigate = useNavigate();
+  const { setUser } = useAuth();                         // ②  grab setter
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    const credentials = { username, password };
     try {
-      const userData = await loginUser(credentials);
-      localStorage.setItem("userId", userData.user.id);
+      const { user } = await loginUser({ username, password });   // ③
+      localStorage.setItem("userId", user.id);  // optional convenience
+      setUser(user);                            // ④  tell context
       setMessage("Login successful!");
       navigate("/dashboard");
-    } catch (error) {
-      console.error("Login error:", error);
+    } catch (err) {
+      console.error("Login error:", err);
       setMessage("Login failed. Please check your credentials.");
     }
   };

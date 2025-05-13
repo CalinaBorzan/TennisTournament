@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../style/TournamentRegistration.css';
+import api from "../api/auth";
 
 const TournamentRegistration = () => {
   const [tournaments, setTournaments] = useState([]);
@@ -7,36 +8,22 @@ const TournamentRegistration = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await fetch('http://localhost:8080/api/tournaments/available', { credentials: 'include' });
-        const data = await res.json();
-        const today = new Date();
-        setTournaments(data.filter(t => new Date(t.endDate) >= today));
-        setLoading(false);
-      } catch (err) {
-        setError('Failed to fetch tournaments.');
-        setLoading(false);
-      }
-    };
-    fetchData();
+    api.get("/api/tournaments/available")
+       .then(r => {
+         const today = new Date();
+         setTournaments(r.data.filter(t => new Date(t.endDate) >= today));
+         setLoading(false);
+       })
+       .catch(() => { setError("Failed to fetch"); setLoading(false); });
   }, []);
 
-  const handleRegister = async (id) => {
+   const handleRegister = async id => {
     try {
-      const userId = localStorage.getItem('userId');
-      const res = await fetch(`http://localhost:8080/api/tournaments/register?tournamentId=${id}&userId=${userId}`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      if (!res.ok) throw new Error('Registration failed');
-      alert('Registered!');
-    } catch (err) {
-      alert(err.message);
-    }
+      await api.post("/api/tournaments/request", null, { params: { tournamentId: id } });
+      alert("Request sent. Waiting for approval");
+    } catch (e) { alert(e.message); }
   };
-
+  
   if (loading) return <div className="register-loading">Loading tournaments...</div>;
   if (error) return <div className="register-error">{error}</div>;
 

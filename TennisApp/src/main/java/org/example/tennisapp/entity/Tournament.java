@@ -22,10 +22,18 @@ public class Tournament {
     @Column(nullable = false)
     private Date endDate;
 
-    @ManyToMany(mappedBy = "registeredTournaments")
-    private List<User> registeredUsers = new ArrayList<>();
+    @OneToMany(mappedBy = "id.tournament",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    private List<TournamentRegistration> registrations = new ArrayList<>();
 
+    public void addRegistration(TournamentRegistration reg) {
+        registrations.add(reg);
+        reg.setTournament(this);
+    }
 
+    @Enumerated(EnumType.STRING)
+    private RegistrationStatus status; // Define this enum with PENDING, ACCEPTED, REJECTED
 
     public Tournament(Long id, String name, Date startDate, Date endDate) {
         this.id = id;
@@ -67,11 +75,6 @@ public class Tournament {
     public void setEndDate(Date endDate) {
         this.endDate = endDate;
     }
-    public void addUser(User user) {
-        registeredUsers.add(user);
-    }
-
-
 
 
 }

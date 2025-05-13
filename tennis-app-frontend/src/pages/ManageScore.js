@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import '../style/Referee.css';
+import api from "../api/auth";
+
 
 const ManageScores = () => {
   const [matches, setMatches] = useState([]);
@@ -8,46 +10,27 @@ const ManageScores = () => {
   const userId = localStorage.getItem('userId');
 
   useEffect(() => {
-    const fetchMatches = async () => {
-      try {
-        const res = await fetch(`http://localhost:8080/api/matches/referee/${userId}`);
-        if (!res.ok) throw new Error('Failed to fetch matches');
-        const data = await res.json();
-        setMatches(data);
-        const initialScores = {};
-        data.forEach(match => {
-          initialScores[match.id] = match.score || '';
-        });
-        setScores(initialScores);
-      } catch (err) {
-        setError(err.message);
-      }
-    };
-
-    fetchMatches();
+    api.get(`/api/matches/referee/${userId}`)
+       .then(r => {
+         setMatches(r.data);
+         const init = {};
+         r.data.forEach(m => { init[m.id] = m.score || ""; });
+         setScores(init);
+       })
+       .catch(e => setError(e.message));
   }, [userId]);
 
   const handleScoreChange = (matchId, value) => {
     setScores(prev => ({ ...prev, [matchId]: value }));
   };
 
-  const handleScoreSubmit = async (matchId) => {
+   const handleScoreSubmit = async id => {
     try {
-      const res = await fetch(`http://localhost:8080/api/matches/${matchId}/update-score`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ score: scores[matchId] }),
-      });
-
-      if (!res.ok) throw new Error('Failed to update score');
-
-      const updatedMatch = await res.json();
-      setMatches(prev =>
-        prev.map(m => (m.id === matchId ? { ...m, score: updatedMatch.score } : m))
-      );
-      alert('Score updated successfully!');
-    } catch (err) {
-      alert(err.message);
+      const { data } = await api.put(`/api/matches/${id}/update-score`, { score: scores[id] });
+      setMatches(prev => prev.map(m => (m.id === id ? { ...m, score: data.score } : m)));
+      alert("Score updated!");
+    } catch (e) {
+      alert(e.message);
     }
   };
 

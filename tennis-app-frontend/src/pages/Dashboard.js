@@ -1,6 +1,8 @@
+
+import '../style/Dashboard.css';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../style/Dashboard.css';
+import api from '../api/auth';                 // ← use the configured Axios
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
@@ -13,9 +15,8 @@ const Dashboard = () => {
       return;
     }
 
-    fetch(`http://localhost:8080/api/users/${userId}`)
-      .then(res => res.json())
-      .then(fetchedUser => setUser(fetchedUser))
+   api.get(`/api/users/${userId}`)
+      .then(res => setUser(res.data))
       .catch(err => navigate('/login'));
   }, [navigate]);
 
@@ -55,6 +56,10 @@ const Dashboard = () => {
               <div className="dashboard-card" onClick={() => navigate('/manage-scores')}>
                 <p>Manage Match Scores</p>
               </div>
+            
+              <div className="dashboard-card" onClick={() => navigate('/referee/filter-players')}>
+                <p>Filter Players</p>
+              </div>
             </>
           )}
           {role === 'admin' && (
@@ -64,6 +69,9 @@ const Dashboard = () => {
               </div>
               <div className="dashboard-card" onClick={() => navigate('/export-matches')}>
                 <p>Export Matches</p>
+              </div>
+              <div className="dashboard-card" onClick={() => navigate('/admin/registrations')}>
+                <p>Approve Registrations</p>
               </div>
             </>
           )}

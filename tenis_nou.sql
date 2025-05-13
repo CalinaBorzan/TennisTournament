@@ -1,0 +1,1 @@
+SELECT * FROM tennis.match_table;

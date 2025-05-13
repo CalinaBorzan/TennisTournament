@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import '../style/TournamentInsight.css'; // Ensure the CSS file is correctly imported
+import api from "../api/auth";
+
 
 const TournamentsInsight = () => {
   const [registeredTournaments, setRegisteredTournaments] = useState([]);
@@ -10,65 +12,23 @@ const TournamentsInsight = () => {
 
   const userId = localStorage.getItem('userId');
 
-  useEffect(() => {
-    const fetchData = async () => {
+   useEffect(() => {
+    (async () => {
       try {
-        // 1) Fetch all tournaments
-        const allRes = await fetch('http://localhost:8080/api/tournaments', { credentials: 'include' });
-        if (!allRes.ok) {
-          throw new Error('Failed to fetch all tournaments');
-        }
-        const allData = await allRes.json();
+        const all      = await api.get("/api/tournaments");
+        const reg      = await api.get("/api/tournaments/registered", { params: { userId } });
+        const regSet   = new Set(reg.data.map(t => t.id));
+        setRegisteredTournaments(all.data.filter(t => regSet.has(t.id)));
+        setNotRegisteredTournaments(all.data.filter(t => !regSet.has(t.id)));
 
-        // 2) Fetch tournaments the user is registered for
-        const regRes = await fetch(`http://localhost:8080/api/tournaments/registered?userId=${userId}`, { credentials: 'include' });
-        if (!regRes.ok) {
-          throw new Error('Failed to fetch registered tournaments');
-        }
-        const regData = await regRes.json();
-
-        // Separate tournaments into registered and not registered
-        const registeredSet = new Set(regData.map((t) => t.id));
-        const userRegistered = [];
-        const userNotRegistered = [];
-        allData.forEach((t) => {
-          if (registeredSet.has(t.id)) {
-            userRegistered.push(t);
-          } else {
-            userNotRegistered.push(t);
-          }
-        });
-
-        // 3) For every tournament, fetch match details (schedule/score)
-        const uniqueTournaments = [...userRegistered, ...userNotRegistered];
-        const matchPromises = uniqueTournaments.map(async (t) => {
-          const matchRes = await fetch(`http://localhost:8080/api/matches/tournament/${t.id}`, { credentials: 'include' });
-          if (!matchRes.ok) {
-            return { tournamentId: t.id, matches: [] }; // fallback if error
-          }
-          const matchData = await matchRes.json();
-          return { tournamentId: t.id, matches: matchData };
-        });
-
-        const matchResults = await Promise.all(matchPromises);
-        const matchesMap = {};
-        matchResults.forEach((item) => {
-          matchesMap[item.tournamentId] = item.matches;
-        });
-
-        // Update state
-        setRegisteredTournaments(userRegistered);
-        setNotRegisteredTournaments(userNotRegistered);
-        setMatchesByTournament(matchesMap);
+        const promises = all.data.map(t => api.get(`/api/matches/tournament/${t.id}`));
+        const results  = await Promise.allSettled(promises);
+        const map = {};
+        results.forEach((res, i) => { map[all.data[i].id] = res.status === "fulfilled" ? res.value.data : []; });
+        setMatchesByTournament(map);
         setLoading(false);
-      } catch (err) {
-        console.error(err);
-        setError(err.message);
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+      } catch (e) { setError(e.message); setLoading(false); }
+    })();
   }, [userId]);
 
   if (loading) {

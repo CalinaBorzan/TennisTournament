@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../style/Profile.css';
+import api from "../api/auth";
+
 
 const Profile = () => {
   const userId = localStorage.getItem('userId');
@@ -12,32 +14,14 @@ const Profile = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!userId) {
-      navigate('/login');
-      return;
-    }
+    if (!userId) { navigate("/login"); return; }
 
-    fetch(`http://localhost:8080/api/users/${userId}`, {
-      credentials: 'include',
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('Not logged in');
-        return res.json();
-      })
-      .then((data) => {
-        setUser(data);
-        setFormData({
-          firstName: data.firstName,
-          lastName: data.lastName,
-          username: data.username,
-          email: data.email,
-          password: '',
-        });
-      })
-      .catch((err) => {
-        console.error(err);
-        setError('You are not logged in.');
-      });
+    api.get(`/api/users/${userId}`)
+       .then(r => {
+         setUser(r.data);
+         setFormData({ ...r.data, password: "" });
+       })
+       .catch(() => setError("You are not logged in."));
   }, [userId, navigate]);
 
   const handleChange = (e) => {
@@ -47,42 +31,28 @@ const Profile = () => {
 
   const handleSave = async () => {
     try {
-      const payload = { ...formData, role: user.role };
-
-      const res = await fetch(`http://localhost:8080/api/users/update-user/${userId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) throw new Error(await res.text());
-
-      const updatedUser = await res.json();
-      setUser(updatedUser);
+    const { data } = await api.put(
+   `/api/users/update-user/${userId}`,
+   {
+     firstName: formData.firstName,
+     lastName : formData.lastName,
+     username : formData.username,
+     email    : formData.email,
+     password : formData.password || ""   // empty string means “unchanged”
+   }
+ );      setUser(data);
       setEditMode(false);
-      alert('Profile updated!');
-    } catch (err) {
-      alert(`Failed to update: ${err.message}`);
-    }
+      alert("Profile updated");
+    } catch (e) { alert(e.message); }
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete your account?')) return;
-
+    if (!window.confirm("Delete account?")) return;
     try {
-      const res = await fetch(`http://localhost:8080/api/users/delete/${userId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-
-      if (!res.ok) throw new Error('Failed to delete account');
-
+      await api.delete(`/api/users/delete/${userId}`);
       localStorage.clear();
-      navigate('/login');
-    } catch (err) {
-      alert(err.message);
-    }
+      navigate("/login");
+    } catch (e) { alert(e.message); }
   };
 
   if (error) return <div className="profile-message">{error}</div>;

@@ -9,10 +9,14 @@ import org.example.tennisapp.service.CsvMatchExporter;
 import org.example.tennisapp.service.JsonMatchExporter;
 import org.example.tennisapp.service.MatchExportStrategy;
 import org.example.tennisapp.service.TxtMatchExporter;
+import org.example.tennisapp.util.LoggedUser;
 import org.example.tennisapp.util.MatchExporter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -30,6 +34,10 @@ public class MatchController {
     @Autowired
     private TournamentRepository tournamentRepository;
 
+    @Autowired
+    LoggedUser me;
+
+
     @GetMapping
     public List<Match> getAllMatches() {
         return matchRepository.findAll();
@@ -42,6 +50,9 @@ public class MatchController {
         return matchRepository.findByTournament(tournament);
     }
 
+
+
+
     @GetMapping("/{matchId}")
     public Match getMatchById(@PathVariable Long matchId) {
         return matchRepository.findById(matchId)
@@ -49,23 +60,28 @@ public class MatchController {
     }
 
     @GetMapping("/referee/{refereeId}")
+    @PreAuthorize("hasRole('REFEREE')")
+
     public List<Match> getMatchesByReferee(@PathVariable Long refereeId) {
+        if (!me.current().getId().equals(refereeId))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "You can only view your own program");
         return matchRepository.findByRefereeId(refereeId);
     }
 
     @PutMapping("/{matchId}/update-score")
+    @PreAuthorize("hasRole('REFEREE')")
+
     public ResponseEntity<?> updateMatchScore(@PathVariable Long matchId, @RequestBody Map<String, String> request) {
-        String score = request.get("score");
+        Match m = matchRepository.findById(matchId).orElseThrow();
+        if (!m.getReferee().getId().equals(me.current().getId()))
+            return ResponseEntity.status(403).body("Not your match!");
 
-        Match match = matchRepository.findById(matchId)
-                .orElseThrow(() -> new RuntimeException("Match not found"));
-
-        match.setScore(score);
-        matchRepository.save(match);
-
-        return ResponseEntity.ok(match);
+        m.setScore(request.get("score"));
+        return ResponseEntity.ok(matchRepository.save(m));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/export")
     public ResponseEntity<?> exportMatches(
             @RequestParam(defaultValue = "csv") String format,

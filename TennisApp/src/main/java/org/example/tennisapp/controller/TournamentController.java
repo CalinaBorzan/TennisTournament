@@ -1,18 +1,21 @@
 package org.example.tennisapp.controller;
 
-import org.example.tennisapp.entity.Tournament;
-import org.example.tennisapp.entity.User;
+import org.example.tennisapp.dto.PendingRegistrationDTO;
+import org.example.tennisapp.dto.RegistrationActionDTO;
+import org.example.tennisapp.dto.TournamentDTO;
+import org.example.tennisapp.entity.*;
+import org.example.tennisapp.repository.TournamentRegistrationRepository;
 import org.example.tennisapp.repository.UserRepository;
-import org.example.tennisapp.service.UserService;
+import org.example.tennisapp.util.JwtUtil;
+import org.example.tennisapp.util.LoggedUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.example.tennisapp.service.TournamentService;
+import org.springframework.security.access.prepost.PreAuthorize;
 
-import java.util.HashMap;
+
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/tournaments")
@@ -23,41 +26,80 @@ public class TournamentController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private TournamentRegistrationRepository regRepo;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    @Autowired
+    LoggedUser me;
+
+
     @GetMapping
-    public List<Tournament> getAllTournaments() {
-        return tournamentService.findAllTournaments();
+    public List<TournamentDTO> getAllTournaments() {
+        return tournamentService.findAllTournaments().stream().map(TournamentDTO::new).toList();
     }
 
 
     @GetMapping("/available")
-    public ResponseEntity<List<Tournament>> getAvailableTournaments() {
-        List<Tournament> availableTournaments = tournamentService.getAvailableTournaments();
-        return ResponseEntity.ok(availableTournaments);
+    @PreAuthorize("hasRole('PLAYER')")
+    public List<TournamentDTO> available() {
+        return tournamentService.getAvailableTournaments().stream().map(TournamentDTO::new).toList();
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<?> registerPlayer(
-            @RequestParam Long tournamentId,
-            @RequestParam Long userId
-    ) {
-        try { User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-            tournamentService.registerUser(tournamentId, user.getId());
-            return ResponseEntity.ok("Registered successfully");
-        } catch (RuntimeException e) {
-            Map<String, String> errorMap = new HashMap<>();
-            errorMap.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(errorMap);
-        }
-    }
 
     @GetMapping("/registered")
-    public ResponseEntity<List<Tournament>> getRegisteredTournaments(@RequestParam Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        return ResponseEntity.ok(user.getRegisteredTournaments());
+    @PreAuthorize("hasRole('PLAYER')")
+    public List<TournamentDTO> getRegisteredTournaments() {
+        return me.current().getRegisteredTournaments()
+                .stream()
+                .map(TournamentDTO::new)
+                .toList();
     }
+
+
+    @PostMapping("/request")
+    @PreAuthorize("hasRole('PLAYER')")
+    public ResponseEntity<?> requestRegistration(@RequestParam Long tournamentId) {
+
+        tournamentService.requestRegistration(tournamentId, me.current().getId());
+        return ResponseEntity.ok("Request submitted – waiting for admin approval");
+    }
+
+
+    @GetMapping("/registrations/pending")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<PendingRegistrationDTO> allPending() {
+        return tournamentService.pendingRegs().stream()
+                .map(r -> new PendingRegistrationDTO(
+                        r.getUser().getId(),
+                        r.getUser().getUsername(),
+                        r.getTournament().getId(),
+                        r.getTournament().getName(),
+                        r.getUser().getEmail()
+                ))
+                .toList();
+    }
+
+    @PutMapping("/registrations/approve")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> approve(@RequestBody RegistrationActionDTO dto) {
+        tournamentService.updateRegistrationStatus(
+                dto.userId(), dto.tournamentId(), RegistrationStatus.ACCEPTED
+        );
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/registrations/deny")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deny(@RequestBody RegistrationActionDTO dto) {
+        tournamentService.updateRegistrationStatus(
+                dto.userId(), dto.tournamentId(), RegistrationStatus.DENIED
+        );
+        return ResponseEntity.ok().build();
+    }
+
 }
 
 

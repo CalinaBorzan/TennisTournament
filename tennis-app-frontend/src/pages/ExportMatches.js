@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import api from "../api/auth";
 import '../style/ExportMatches.css';
 
 const ExportMatches = () => {
@@ -8,19 +9,14 @@ const ExportMatches = () => {
 
   const handleExport = async () => {
     try {
-        let url = `http://localhost:8080/api/matches/export?format=${format}`;
-        if (startDate) url += `&fromDate=${startDate}`;
-        if (endDate) url += `&toDate=${endDate}`;
+      let url = `/api/matches/export?format=${format}`;
+      if (startDate) url += `&fromDate=${startDate}`;
+      if (endDate)   url += `&toDate=${endDate}`;
 
-      const response = await fetch(url, {
-        method: 'GET',
-      });
-
-      if (!response.ok) throw new Error('Failed to export');
-
-      const blob = await response.blob();
-      const link = document.createElement('a');
-      link.href = window.URL.createObjectURL(blob);
+      const { data } = await api.get(url, { responseType: "blob" });
+      const blob = data;
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
       link.download = `matches_export.${format}`;
       link.click();
     } catch (err) {

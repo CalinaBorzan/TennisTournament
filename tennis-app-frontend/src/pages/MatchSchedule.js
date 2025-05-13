@@ -1,30 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import '../style/MatchSchedule.css';
+import api from "../api/auth";
+
 
 const MatchSchedule = () => {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchMatches = async () => {
-      try {
-        // Fetch matches from your backend:
-        // Change the URL to fit your app (e.g., /api/matches/tournament/{id} if needed)
-        const response = await fetch('http://localhost:8080/api/matches');
-        if (!response.ok) {
-          throw new Error('Failed to fetch matches');
-        }
-        const data = await response.json();
-        setMatches(data);
-        setLoading(false);
-      } catch (err) {
-        setError(err.message);
-        setLoading(false);
-      }
-    };
-
-    fetchMatches();
+   useEffect(() => {
+    api.get("/api/matches")
+       .then(r => { setMatches(r.data); setLoading(false); })
+       .catch(e => { setError(e.message); setLoading(false); });
   }, []);
 
   if (loading) {

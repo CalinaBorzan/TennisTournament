@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import '../style/Referee.css';
+import api from "../api/auth";
 
 
 const RefereeSchedule = () => {
@@ -7,14 +8,10 @@ const RefereeSchedule = () => {
   const [error, setError] = useState(null);
   const userId = localStorage.getItem('userId');
 
-  useEffect(() => {
-    fetch(`http://localhost:8080/api/matches/referee/${userId}`)
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch referee matches');
-        return res.json();
-      })
-      .then(data => setMatches(data))
-      .catch(err => setError(err.message));
+ useEffect(() => {
+    api.get(`/api/matches/referee/${userId}`)
+       .then(r => setMatches(r.data))
+       .catch(e => setError(e.message));
   }, [userId]);
 
   if (error) return <div>Error: {error}</div>;

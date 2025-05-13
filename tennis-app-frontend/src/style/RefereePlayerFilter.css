@@ -1,0 +1,77 @@
+/* src/style/RefereePlayerFilter.css */
+
+.filter-page {
+  padding: 40px;
+  background-color: #f4f6f8;
+  min-height: 100vh;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.filter-page h2 {
+  font-size: 28px;
+  color: #2c3e50;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.filter-page div {
+  margin-bottom: 30px;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.filter-page input {
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+  width: 200px;
+}
+
+.filter-page button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 6px;
+  background-color: #3498db;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.filter-page button:hover {
+  background-color: #2980b9;
+  transform: translateY(-1px);
+}
+
+.filter-page table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.filter-page th,
+.filter-page td {
+  padding: 16px 20px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+
+.filter-page th {
+  background-color: #2c3e50;
+  color: white;
+  font-size: 18px;
+}
+
+.filter-page td {
+  font-size: 16px;
+}
+
+.filter-page tr:hover {
+  background-color: #f5f9ff;
+}

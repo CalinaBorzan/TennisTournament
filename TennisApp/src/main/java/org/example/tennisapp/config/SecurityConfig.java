@@ -1,81 +1,82 @@
 package org.example.tennisapp.config;
 
-import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.firewall.HttpFirewall;
-import org.springframework.security.web.firewall.StrictHttpFirewall;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity   // enables @PreAuthorize
 public class SecurityConfig {
+
+    @Autowired
+    private JwtAuthFilter jwtAuthFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                /* ---------- PUBLIC ENDPOINTS ---------- */
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.GET, "/api/users/**").permitAll()
-                        .requestMatchers("/api/users/**").permitAll()
-                        .requestMatchers("/api/users/register").permitAll()
-                        .requestMatchers(HttpMethod.GET,"/api/tournaments/**").permitAll()
-                        .requestMatchers("/api/users/login").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/api/users/update-user/**").permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/api/users/delete/**").permitAll()
-                        .requestMatchers("/api/users/all").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/tournaments/register/*").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/tournaments/register").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/tournaments/available").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/tournaments/register").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/matches/tournament/*").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/matches/**").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/api/matches/**").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/api/matches/update-score/**").permitAll()
-                        .requestMatchers("/api/users/update-user/**").permitAll()
+                        .requestMatchers(HttpMethod.POST , "/api/users/login"    ).permitAll()
+                        .requestMatchers(HttpMethod.POST , "/api/users/register" ).permitAll()
+                        .requestMatchers(HttpMethod.GET  , "/api/tournaments/available").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+
+                        /* ---------- ROLE-BASED ENDPOINTS ---------- */
+                        // Admin
+                        .requestMatchers("/api/users/**").hasAnyRole("ADMIN","PLAYER","REFEREE")
+                        .requestMatchers("/api/matches/export"                 ).hasRole("ADMIN")
+                        .requestMatchers("/api/tournaments/registrations/**"   ).hasRole("ADMIN")
+
+                        // Referee
+                        .requestMatchers("/api/matches/**"                     ).hasAnyRole("REFEREE","ADMIN","PLAYER")
+                        .requestMatchers("/api/users/filter-players"           ).hasRole("REFEREE")
+
+                        // Player
+                        .requestMatchers("/api/tournaments/request"            ).hasRole("PLAYER")
+                        .requestMatchers("/api/tournaments/registered"         ).hasRole("PLAYER")
+
+
+
                         .anyRequest().authenticated()
                 )
-                .formLogin(form -> form
-                        .loginPage("/login")
-                        .permitAll()
-                )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                )
-                .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
-                        })
-                );
 
-        http.securityMatcher((request) -> {
-            HttpFirewall firewall = new StrictHttpFirewall();
-            ((StrictHttpFirewall) firewall).setAllowSemicolon(true);
-            return true;
-        });
+                /* ---------- JWT FILTER ---------- */
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
+    /* ---------- CORS + PASSWORD BEANS ---------- */
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
-        config.addAllowedOrigin("http://localhost:3000");
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
-        source.registerCorsConfiguration("/**", config);
-        return source;
+        CorsConfiguration cfg = new CorsConfiguration();
+        cfg.setAllowCredentials(true);
+        cfg.addAllowedOrigin("http://localhost:3000");
+        cfg.addAllowedHeader("*");
+        cfg.addAllowedMethod("*");
+
+        UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
+        src.registerCorsConfiguration("/**", cfg);
+        return src;
     }
 
     @Bean
